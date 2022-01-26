@@ -1,0 +1,122 @@
+-- get good buy my script 
+-- GG.
+
+local IAPortable = Instance.new("ScreenGui")
+local Cursor = Instance.new("ImageLabel")
+local Hitmarker = Instance.new("ImageLabel")
+local RunService = game.RunService
+local UserInputService = game.UserInputService
+local Mouse = game.Players.LocalPlayer:GetMouse()
+local Players = game.Players
+local LocalPlayer = game.Players.LocalPlayer
+local Tool = LocalPlayer.Character:FindFirstChildOfClass("Tool") and game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool"):FindFirstChild("GunScript") and game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")
+local Sound = Instance.new("Sound")
+local SoundService = game.SoundService
+local FullyWhitelisted = false
+local IsPlaying = false
+local Bindable = Instance.new('BindableEvent')
+local playSoundEffect = function()
+    if not IsPlaying then
+        IsPlaying = true
+        SoundService:PlayLocalSound(Sound)
+        delay(.05, function()
+            IsPlaying = false
+        end)
+    end
+end
+local createChildAdded = function(Object, fn)
+    Object.ChildAdded:Connect(fn)
+end
+
+task.spawn(function()
+    while true do
+        --pcall(function()
+            for i,v in next, game.Players.LocalPlayer.Character:GetChildren() do
+                if v:FindFirstChild("GunScript") and not Tool or v:FindFirstChild("GunScript") and Tool ~= v or v:FindFirstChild("GunScript") and not Tool.Parent then
+                    Mouse = game.Players.LocalPlayer:GetMouse()
+                    Tool = v
+                    if #getconnections(Tool.Handle.ChildAdded) < 1 then
+                        createChildAdded(Tool.Handle, function(Obj)
+                            if Obj.Name == "ShootSound" then
+                                FullyWhitelisted = true
+                                task.delay(.05, function()
+                                    FullyWhitelisted = false
+                                end)
+                            end
+                        end)
+                    end
+                end
+            end
+        --end)
+        task.wait(1)
+    end
+end)
+repeat wait() until Tool
+
+Sound.SoundId = "rbxassetid://1347140027"
+Sound.Volume = 100
+Bindable.Event:Connect(function()
+    if FullyWhitelisted then
+        Hitmarker.Visible = true
+        Hitmarker.Position = UDim2.new(0, Mouse.X, 0, Mouse.Y)
+        Hitmarker.Rotation = math.random(0,90)
+        Cursor.ImageColor3 = Color3.fromRGB(0,255,0)
+        playSoundEffect()
+        task.delay(0.15, function()
+            Hitmarker.Visible = false
+            Cursor.ImageColor3 = Color3.fromRGB(255,255,255)
+        end)
+    end 
+end)
+
+IAPortable.Name = "IA Portable"
+IAPortable.Parent = game:GetService('CoreGui')
+IAPortable.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+Cursor.Name = "Cursor"
+Cursor.Parent = IAPortable
+Cursor.AnchorPoint = Vector2.new(0.5, 0.5)
+Cursor.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Cursor.BackgroundTransparency = 1.000
+Cursor.Size = UDim2.new(0, 256, 0, 256)
+Cursor.Image = "rbxassetid://3355815697"
+Cursor.ScaleType = Enum.ScaleType.Fit
+
+Hitmarker.Name = "Hitmarker"
+Hitmarker.Parent = IAPortable
+Hitmarker.AnchorPoint = Vector2.new(0.5, 0.5)
+Hitmarker.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Hitmarker.BackgroundTransparency = 1.000
+Hitmarker.BorderColor3 = Color3.fromRGB(27, 42, 53)
+Hitmarker.Position = UDim2.new(0.5, 0, 0.5, 0)
+Hitmarker.Size = UDim2.new(0, 45, 0, 45)
+Hitmarker.Image = "rbxassetid://890801299"
+Hitmarker.Visible = false
+
+local old
+old = hookmetamethod(game, '__namecall', function(self, ...)
+    local method = getnamecallmethod()
+    local args = {...}
+
+    if method == 'FireServer' and self.Name == "Bullets" then
+        task.spawn(function()
+            local Target = Mouse.Target or workspace
+            local Limb = Target.Parent:FindFirstChildOfClass('Humanoid')
+            local Accessory = Target.Parent.Parent:FindFirstChildOfClass('Humanoid')
+            if Limb or Accessory then
+                Bindable.Fire(Bindable)
+            end
+        end)
+    end
+
+    return old(self, ...)
+end)
+RunService.RenderStepped:Connect(function()
+    UserInputService.MouseIconEnabled = false
+    Cursor.Position = UDim2.new(0,Mouse.X,0,Mouse.Y)
+    local T = LocalPlayer.PlayerGui:FindFirstChild("MainScreenGui") and LocalPlayer.PlayerGui.MainScreenGui.Aim:GetChildren() or {}
+    for i = 1, #T do
+        local v = T[i]
+        v.Visible = false 
+    end
+end)
